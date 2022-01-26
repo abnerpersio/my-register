@@ -1,13 +1,17 @@
 {
   "compilerOptions": {
-    "sourceMap": true,
-    "target": "es2016",
     "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es2017",
+    "sourceMap": true,
     "outDir": "dist",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
+    "baseUrl": "./",
+    "incremental": true,
     "skipLibCheck": true,
+    "strict": true,
   },
   "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"]
