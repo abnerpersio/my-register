@@ -8,7 +8,11 @@ import { RequestError } from '../../shared/errors/request-error';
 import { messages } from '../../shared/constants/messages';
 
 export default class UserController {
-  constructor(public usersRepository: UsersRepository) {}
+  private usersRepository: UsersRepository;
+
+  constructor() {
+    this.usersRepository = new UsersRepository();
+  }
 
   getByEmail = async (
     req: Request<unknown, unknown, unknown, { email: string }>,
@@ -29,20 +33,22 @@ export default class UserController {
   };
 
   create = async (req: Request<unknown, unknown, UserModel>, res: Response) => {
-    Validate(req.body, {
+    const { body } = req;
+
+    Validate(body, {
       name: 'string',
       email: 'string',
       password: 'string',
       gender: 'string',
     });
 
-    const userAlreadyExists = await this.usersRepository.findByEmail({ email: req.body.email });
+    const userAlreadyExists = await this.usersRepository.findByEmail({ email: body.email });
 
     if (userAlreadyExists) {
       throw new RequestError('User already exists', 400);
     }
 
-    const user = await this.usersRepository.create(req.body);
+    const user = await this.usersRepository.create(body);
 
     return res.json({
       success: true,
@@ -70,5 +76,21 @@ export default class UserController {
     await this.usersRepository.delete(id);
 
     return res.sendStatus(204);
+  };
+
+  updateProfile = async (req: Request<{ id: string }>, res: Response) => {
+    if (!req.file?.path) {
+      throw new RequestError('Invalid file uploaded', 422);
+    }
+
+    const updatedUser = await this.usersRepository.updateProfile({
+      id: Number(req.params.id),
+      filePath: req.file.path,
+    });
+
+    res.json({
+      success: true,
+      data: updatedUser,
+    });
   };
 }

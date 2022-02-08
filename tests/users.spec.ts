@@ -1,4 +1,6 @@
 import * as request from 'supertest';
+import { resolve } from 'path';
+import * as fs from 'fs';
 
 import server from '../src/server';
 import { prisma } from '../src/config/prisma';
@@ -23,6 +25,24 @@ describe('Users Controller', () => {
 
   afterAll(async () => {
     await prisma.$disconnect();
+
+    await fs.promises.rm(resolve(__dirname, '..', 'tmp', 'uploads'), {
+      recursive: true,
+      force: true,
+    });
+
+    await fs.promises.mkdir(resolve(__dirname, '..', 'tmp', 'uploads'));
+  });
+
+  describe('GET /users validations', () => {
+    test('should return user not found', async () => {
+      const response = await request(server).get('/users').query({
+        email: 'not-found@test.com',
+      });
+
+      expect(response.status).toBe(404);
+      expect(response.body.message).toBe('User was not found');
+    });
   });
 
   describe('POST /users validations', () => {
@@ -47,6 +67,31 @@ describe('Users Controller', () => {
 
       expect(response.status).toBe(422);
       expect(response.body.message).toBe("Invalid payload. Field 'name' with type: 'number'");
+    });
+
+    test('should validate creation when user already exists', async () => {
+      const user = await UserGenerator.create(defaultMockUser);
+
+      const response = await request(server).post('/users').send({
+        email: user.email,
+        gender: 'female',
+        name: 'fulano silva',
+        password: 'test-password',
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe('User already exists');
+    });
+  });
+
+  describe('PUT /users/:id/profile validations', () => {
+    test('should validate invalid profile image sent', async () => {
+      const user = await UserGenerator.create(defaultMockUser);
+
+      const response = await request(server).put(`/users/${user.id}/profile`);
+
+      expect(response.status).toBe(422);
+      expect(response.body.message).toBe('Invalid file uploaded');
     });
   });
 
@@ -87,5 +132,16 @@ describe('Users Controller', () => {
     const response = await request(server).delete(`/users/${user.id}`);
 
     expect(response.status).toBe(204);
+  });
+
+  test('should upload profile image', async () => {
+    const user = await UserGenerator.create(defaultMockUser);
+
+    const response = await request(server)
+      .put(`/users/${user.id}/profile`)
+      .attach('file', resolve(__dirname, 'mocks', 'mock-image.png'));
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.image_id).not.toBeNull();
   });
 });

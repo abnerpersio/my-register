@@ -42,10 +42,25 @@ export default class UsersRepository {
       },
       data: {
         email: data.email,
-        name: data.email,
+        name: data.name,
         gender: data.gender,
       },
       select: this.DEFAULT_SELECT,
+    });
+  }
+
+  updateProfile({ id, filePath }: { id: number; filePath: string }): Promise<Partial<UserModel>> {
+    return this.users.update({
+      where: {
+        id,
+      },
+      data: {
+        images: {
+          create: {
+            url: filePath,
+          },
+        },
+      },
     });
   }
 
