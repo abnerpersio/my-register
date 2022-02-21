@@ -19,6 +19,7 @@ export default class UserController {
     res: Response,
   ) => {
     const { email } = req.query;
+    console.log('teste');
 
     const user = await this.usersRepository.findByEmail({ email });
 
