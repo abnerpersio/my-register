@@ -1,7 +1,7 @@
-import { ICreateUser } from 'src/shared/interfaces/users.interfaces';
+import { ICreateUser } from '../../src/shared/interfaces/users';
 import { prisma } from '../../src/config/prisma';
 
-export default class UserGenerator {
+export class UserGenerator {
   static async deleteAll() {
     return prisma.users.deleteMany();
   }

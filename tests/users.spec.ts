@@ -1,11 +1,13 @@
 import * as request from 'supertest';
-import { resolve } from 'path';
+import * as path from 'path';
 import * as fs from 'fs';
+
+process.env.UPLOAD_TYPE = 'local';
 
 import server from '../src/server';
 import { prisma } from '../src/config/prisma';
 
-import UserGenerator from './utils/user-generator';
+import { UserGenerator } from './utils/UserGenerator';
 
 describe('Users Controller', () => {
   const defaultMockUser = {
@@ -26,12 +28,12 @@ describe('Users Controller', () => {
   afterAll(async () => {
     await prisma.$disconnect();
 
-    await fs.promises.rm(resolve(__dirname, '..', 'tmp', 'uploads'), {
+    await fs.promises.rm(path.resolve(__dirname, '..', 'tmp', 'uploads'), {
       recursive: true,
       force: true,
     });
 
-    await fs.promises.mkdir(resolve(__dirname, '..', 'tmp', 'uploads'));
+    await fs.promises.mkdir(path.resolve(__dirname, '..', 'tmp', 'uploads'));
   });
 
   describe('GET /users validations', () => {
@@ -139,7 +141,7 @@ describe('Users Controller', () => {
 
     const response = await request(server)
       .put(`/users/${user.id}/profile`)
-      .attach('file', resolve(__dirname, 'mocks', 'mock-image.png'));
+      .attach('file', path.resolve(__dirname, 'mocks', 'mock-image.png'));
 
     expect(response.status).toBe(200);
     expect(response.body.data.image_id).not.toBeNull();

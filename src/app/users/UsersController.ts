@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 
-import { users as UserModel } from '@prisma/client';
-import UsersRepository from './users.repository';
+import UsersRepository from './UsersRepository';
 
 import Validate from '../../shared/validators/schema';
 import { RequestError } from '../../shared/errors/request-error';
 import { messages } from '../../shared/constants/messages';
+import { IUser } from 'src/shared/interfaces/users';
 
 export default class UserController {
   private usersRepository: UsersRepository;
@@ -32,7 +32,7 @@ export default class UserController {
     });
   };
 
-  create = async (req: Request<unknown, unknown, UserModel>, res: Response) => {
+  create = async (req: Request<unknown, unknown, IUser>, res: Response) => {
     const { body } = req;
 
     Validate(body, {
@@ -56,7 +56,7 @@ export default class UserController {
     });
   };
 
-  update = async (req: Request<{ id: string }, unknown, UserModel>, res: Response) => {
+  update = async (req: Request<{ id: string }, unknown, IUser>, res: Response) => {
     const { id } = req.params;
 
     const updatedUser = await this.usersRepository.update({
@@ -79,13 +79,16 @@ export default class UserController {
   };
 
   updateProfile = async (req: Request<{ id: string }>, res: Response) => {
-    if (!req.file?.path) {
+    const path = (req.file as Express.Multer.File)?.path;
+    const location = (req.file as Express.MulterS3.File)?.location;
+
+    if (!path && !location) {
       throw new RequestError('Invalid file uploaded', 422);
     }
 
     const updatedUser = await this.usersRepository.updateProfile({
       id: Number(req.params.id),
-      filePath: req.file.path,
+      filePath: path || location,
     });
 
     res.json({

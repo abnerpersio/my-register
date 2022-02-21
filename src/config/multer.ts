@@ -5,22 +5,25 @@ import * as path from 'path';
 
 import aws from './aws';
 
+const DEFAULT_BUCKET = 'upload-testes';
+
+function formatFileName(
+  _req: Express.Request,
+  file: Express.Multer.File,
+  cb: (error: Error | null, fileName: string) => void,
+) {
+  const buffer = crypto.randomBytes(6);
+  cb(null, `${buffer.toString('hex')}-${file.originalname}`);
+}
+
 const config: { [key: string]: multer.Options } = {
-  s3: {
+  aws: {
     storage: multerS3({
       s3: new aws.S3(),
-      bucket: process.env.BUCKET_NAME || 'upload-testes',
+      bucket: process.env.BUCKET_NAME || DEFAULT_BUCKET,
       contentType: multerS3.AUTO_CONTENT_TYPE,
       acl: 'public-read',
-      key: (_req, file, cb) => {
-        crypto.randomBytes(6, (err, hash) => {
-          if (err) cb(err);
-
-          const fileName = `${hash.toString('hex')}-${file.originalname}`;
-
-          cb(null, fileName);
-        });
-      },
+      key: formatFileName,
     }),
   },
   local: {
@@ -28,19 +31,15 @@ const config: { [key: string]: multer.Options } = {
       destination: (_req, _file, cb) => {
         cb(null, path.resolve(__dirname, '..', '..', 'tmp', 'uploads'));
       },
-      filename: (_req, file, cb) => {
-        crypto.randomBytes(6, (err, hash) => {
-          if (err) cb(null, file.originalname);
-
-          const fileKey = `${hash.toString('hex')}-${file.originalname}`;
-
-          cb(null, fileKey);
-        });
-      },
+      filename: formatFileName,
     }),
   },
 };
 
-export default function MulterConfig(type: 's3' | 'local') {
-  return multer(config[type]).single('file');
+export default function MulterConfig() {
+  const { UPLOAD_TYPE } = process.env;
+
+  if (!UPLOAD_TYPE) throw new Error('Invalid upload type configured');
+
+  return multer(config[UPLOAD_TYPE as string]).single('file');
 }

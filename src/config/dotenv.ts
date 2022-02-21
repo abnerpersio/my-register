@@ -1,5 +1,7 @@
 import { config } from 'dotenv';
 
+const isTestEnvironment = process.env.NODE_ENV === 'test';
+
 config({
-  path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
+  path: isTestEnvironment ? '.env.test' : '.env',
 });

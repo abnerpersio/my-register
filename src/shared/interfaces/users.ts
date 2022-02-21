@@ -1,3 +1,5 @@
+import { users as UserModel } from '@prisma/client';
+
 export interface IGetUser {
   email: string;
   getPassword?: boolean;
@@ -11,3 +13,5 @@ export interface ICreateUser {
 }
 
 export interface IUpdateUser extends ICreateUser {}
+
+export interface IUser extends UserModel {}

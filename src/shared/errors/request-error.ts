@@ -1,9 +1,9 @@
 export class RequestError extends Error {
-  status: number;
+  status: number = 500;
 
   constructor(message?: string | undefined, status?: number | undefined) {
     super(message);
 
-    this.status = status ?? 500;
+    if (status) this.status = status;
   }
 }

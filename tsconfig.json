@@ -17,6 +17,6 @@
     "files": true,
     "transpileOnly": true
   },
-  "include": ["src/*", "tests/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist"]
 }
