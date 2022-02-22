@@ -14,6 +14,7 @@ Techs:
 - Express
 - Postgres
 - Prisma
+- AWS (S3)
 
 ## How to run project
 
